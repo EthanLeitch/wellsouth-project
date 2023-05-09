@@ -33,9 +33,3 @@ def critical_error():
     exit()
 
 # critical_error()
-
-"""
-url = "https://api.bamboohr.com/api/gateway.php/companyDomain/v1/employees/changed"
-response = requests.get(url)
-print(response.text)
-"""
