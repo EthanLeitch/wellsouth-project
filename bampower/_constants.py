@@ -14,6 +14,7 @@ NOW = datetime.datetime.now()
 absolute_path = path.dirname(__file__)
 FILES_PATH = path.join(absolute_path, "../files")
 METATABLES_PATH = f"{FILES_PATH}/metatables.json"
+EMPLOYEES_PATH = f"{FILES_PATH}/employees.json"
 
 # Load .env values
 config = dotenv_values(".env")

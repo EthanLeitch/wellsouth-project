@@ -2,6 +2,7 @@
 
 # Internal module imports
 import _constants
+import requests
 
 def main():
     pass
