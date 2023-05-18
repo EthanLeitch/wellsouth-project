@@ -4,6 +4,7 @@ import _file_validator
 # Imports
 import base64
 import json
+from json import JSONDecodeError
 import datetime
 from os import path
 from dotenv import dotenv_values
@@ -11,10 +12,26 @@ from dotenv import dotenv_values
 NOW = datetime.datetime.now()
 # print(NOW.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
+# Set up file paths and templates
 absolute_path = path.dirname(__file__)
 FILES_PATH = path.join(absolute_path, "../files")
 METATABLES_PATH = f"{FILES_PATH}/metatables.json"
-EMPLOYEES_PATH = f"{FILES_PATH}/employees.json"
+WATCHING_PATH = f"{FILES_PATH}/watching.json"
+
+WATCHING_TEMPLATE = """[
+    {
+        "title": "Updated Job Title",
+        "sendToEndpoint": "example.com",
+        "fields": [
+            {
+                "name": "Job Title",
+                "type": "list",
+                "alias": "jobTitle"
+            }
+        ]
+    }
+]
+"""
 
 # Load .env values
 config = dotenv_values(".env")
@@ -29,4 +46,17 @@ HEADERS = {
     "authorization": ("Basic " + API_KEY)
 }
 
-METATABLES = _file_validator.main()
+_file_validator.main()
+
+# Simple load_file function with error handling
+def load_file(path):
+    with open(path, 'r') as file:
+        try:
+            return json.load(file)
+        except JSONDecodeError as e:
+            print(f"Error in file {path}")
+            print(f"JSONDecodeError: {e}")
+            exit()
+
+metatables = load_file(METATABLES_PATH)
+watching = load_file(WATCHING_PATH)
