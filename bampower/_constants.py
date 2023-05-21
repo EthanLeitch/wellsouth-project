@@ -9,14 +9,20 @@ import datetime
 from os import path
 from dotenv import dotenv_values
 
+# Time constants
 NOW = datetime.datetime.now()
-# print(NOW.strftime("%Y-%m-%dT%H:%M:%SZ"))
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+print(NOW.strftime(TIME_FORMAT))
+
+JSON_INDENT = 4
 
 # Set up file paths and templates
 absolute_path = path.dirname(__file__)
 FILES_PATH = path.join(absolute_path, "../files")
-METATABLES_PATH = f"{FILES_PATH}/metatables.json"
+SNAPSHOTS_PATH = f"{FILES_PATH}/snapshots/"
+METAFIELDS_PATH = f"{FILES_PATH}/metafields.json"
 WATCHING_PATH = f"{FILES_PATH}/watching.json"
+LAST_RUN_PATH = f"{FILES_PATH}/last_run.json"
 
 WATCHING_TEMPLATE = """[
     {
@@ -58,5 +64,5 @@ def load_file(path):
             print(f"JSONDecodeError: {e}")
             exit()
 
-metatables = load_file(METATABLES_PATH)
+metafields = load_file(METAFIELDS_PATH)
 watching = load_file(WATCHING_PATH)
