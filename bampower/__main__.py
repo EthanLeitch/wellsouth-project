@@ -1,12 +1,24 @@
 # Main program
 
+# Start logging
+from os import environ
+import _logging
+_logging.logger.info(f"Program started via {environ['SHELL']}")
+
 # Internal module imports
 import _constants
 import _common
+import _file_validator
 
 # External module imports
 from os import path
 import json
+
+_file_validator.main()
+
+metafields = _file_validator.load_file(_constants.METAFIELDS_PATH)
+watching = _file_validator.load_file(_constants.WATCHING_PATH)
+snapshots = _file_validator.load_snapshots()
 
 def parse(string):
     string = string.lower()
@@ -14,7 +26,7 @@ def parse(string):
     return string
 
 def main():
-    for entry in _constants.watching:
+    for entry in watching:
         payload = {}
 
         payload["title"] = entry["title"]
@@ -25,7 +37,7 @@ def main():
 
         response = _common.request_url("POST", "/v1/reports/custom?format=JSON&onlyCurrent=true", payload)
 
-        file_path = f"{_constants.SNAPSHOTS_PATH}{payload['title']}.json"
+        file_path = f"{_constants.CURRENT_SNAPSHOT_PATH}{payload['title']}.json"
 
         if not path.exists(file_path):
             print(f"{file_path} not found. Creating!")

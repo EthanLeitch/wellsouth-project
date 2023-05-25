@@ -6,5 +6,6 @@
 .venv/
 __pycache__/
 
-# Ignore downloaded files
+# Ignore program-created files
 files/*
+log.txt

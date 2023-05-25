@@ -1,32 +1,43 @@
 # Internal module imports
 import _file_validator
+import _logging
 
 # Imports
 import base64
-import json
-from json import JSONDecodeError
 import datetime
 from os import path
 from dotenv import dotenv_values
 
-# Time constants
-NOW = datetime.datetime.now()
-TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-print(NOW.strftime(TIME_FORMAT))
-
+# Number defaults
 JSON_INDENT = 4
 
 # Set up file paths and templates
 absolute_path = path.dirname(__file__)
 FILES_PATH = path.join(absolute_path, "../files")
-SNAPSHOTS_PATH = f"{FILES_PATH}/snapshots/"
+#SNAPSHOTS_PATH = f"{FILES_PATH}/snapshots/"
 METAFIELDS_PATH = f"{FILES_PATH}/metafields.json"
 WATCHING_PATH = f"{FILES_PATH}/watching.json"
 LAST_RUN_PATH = f"{FILES_PATH}/last_run.json"
 
+# Set up time (ISO 8601)
+now = datetime.datetime.now()
+#TIME_FORMAT = ""
+TIME_FORMAT = "%Y-%m-%d-%H:%M:%S"
+
+def time(format, time=now):
+    if format == "filesafe":
+        return time.strftime("%Y-%m-%d_%H-%M-%S")
+    elif format == "bamboo":
+        return time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+NOW = now.strftime(TIME_FORMAT)
+LAST_RUN = _file_validator.load_last_run()
+
+CURRENT_SNAPSHOT_PATH = f"{FILES_PATH}/snapshots/{NOW}/"
+
 WATCHING_TEMPLATE = """[
     {
-        "title": "Updated Job Title",
+        "title": "updated_job_title",
         "sendToEndpoint": "example.com",
         "fields": [
             {
@@ -51,18 +62,3 @@ HEADERS = {
     "Accept": "application/json",
     "authorization": ("Basic " + API_KEY)
 }
-
-_file_validator.main()
-
-# Simple load_file function with error handling
-def load_file(path):
-    with open(path, 'r') as file:
-        try:
-            return json.load(file)
-        except JSONDecodeError as e:
-            print(f"Error in file {path}")
-            print(f"JSONDecodeError: {e}")
-            exit()
-
-metafields = load_file(METAFIELDS_PATH)
-watching = load_file(WATCHING_PATH)

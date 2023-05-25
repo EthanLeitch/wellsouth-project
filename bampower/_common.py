@@ -4,7 +4,7 @@ import _constants
 import requests
 
 def request_url(request_type, url_end, payload=None):
-    '''Function for sending a GET/POST request'''
+    '''Sends a GET/POST request to BambooHR'''
     url = f"https://api.bamboohr.com/api/gateway.php/{_constants.config['DOMAIN']}{url_end}"
 
     if request_type == "GET":
