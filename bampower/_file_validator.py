@@ -31,12 +31,12 @@ def main():
         with open(_constants.WATCHING_PATH, 'w') as file:
             file.write(_constants.WATCHING_TEMPLATE)
 
-def load_snapshots():
-    '''Load snapshots saved as files/snapshots/*.json'''
+def load_snapshot_files(path):
+    '''Load snapshot files saved as files/snapshots/*.json'''
 
     snapshots = []
 
-    for file_path in list(pathlib.Path(_constants.CURRENT_SNAPSHOT_PATH).iterdir()):
+    for file_path in list(pathlib.Path(path).iterdir()):
         # Loading files...
         file = load_file(file_path)
         snapshots.append(file)
@@ -58,7 +58,7 @@ def load_last_run():
     '''Return timestamp that the program was last run'''
     if not path.exists(_constants.LAST_RUN_PATH):
         # last_run.json does not exist, so lastRun should be now
-        last_run = {"lastRun": _constants.NOW}
+        last_run = {"lastRun": _constants.timestamp('filesafe')}
     else:
         # Load existing last_run.json file
         last_run = load_file(_constants.LAST_RUN_PATH)
@@ -66,7 +66,7 @@ def load_last_run():
         remove(_constants.LAST_RUN_PATH)
 
     # Create a new last_run.json file 
-    new_data = {"lastRun": _constants.NOW}
+    new_data = {"lastRun": _constants.timestamp('filesafe')}
 
     with open(_constants.LAST_RUN_PATH, 'w') as file:
         file.write(json.dumps(new_data, indent=_constants.JSON_INDENT))

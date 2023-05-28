@@ -14,7 +14,7 @@ JSON_INDENT = 4
 # Set up file paths and templates
 absolute_path = path.dirname(__file__)
 FILES_PATH = path.join(absolute_path, "../files")
-#SNAPSHOTS_PATH = f"{FILES_PATH}/snapshots/"
+SNAPSHOTS_PATH = f"{FILES_PATH}/snapshots/"
 METAFIELDS_PATH = f"{FILES_PATH}/metafields.json"
 WATCHING_PATH = f"{FILES_PATH}/watching.json"
 LAST_RUN_PATH = f"{FILES_PATH}/last_run.json"
@@ -24,7 +24,7 @@ now = datetime.datetime.now()
 #TIME_FORMAT = ""
 TIME_FORMAT = "%Y-%m-%d-%H:%M:%S"
 
-def time(format, time=now):
+def timestamp(format, time=now):
     if format == "filesafe":
         return time.strftime("%Y-%m-%d_%H-%M-%S")
     elif format == "bamboo":
@@ -33,7 +33,7 @@ def time(format, time=now):
 NOW = now.strftime(TIME_FORMAT)
 LAST_RUN = _file_validator.load_last_run()
 
-CURRENT_SNAPSHOT_PATH = f"{FILES_PATH}/snapshots/{NOW}/"
+CURRENT_SNAPSHOT_PATH = f"{FILES_PATH}/snapshots/{timestamp('filesafe')}/"
 
 WATCHING_TEMPLATE = """[
     {
