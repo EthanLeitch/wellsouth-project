@@ -50,7 +50,7 @@ def main():
             parsed_json = json.loads(response.text)
             file.write(json.dumps(parsed_json, indent = _constants.JSON_INDENT))
     """
-
+    
     print("Sorting snapshots...")
 
     snapshots = []
@@ -67,9 +67,57 @@ def main():
     snapshots.sort(key=lambda x: datetime.strptime(x, "%Y-%m-%d_%H-%M-%S"))
     
     # Compare the current snapshot to the last snapshot
-    last_snapshot_name = f"snapshots/{snapshots[-2]}/"
+    last_snapshot_path = f"{_constants.SNAPSHOTS_PATH}{snapshots[-2]}/"
+    
+    old = _file_validator.load_snapshot_files(last_snapshot_path)
+    new = _file_validator.load_snapshot_files(_constants.CURRENT_SNAPSHOT_PATH)
 
-    last_snapshots = _file_validator.load_snapshot_files()
+    for count, snapshot in enumerate(new):
+        
+        if snapshot["title"] != old[count]["title"]:
+            print("Something has gone wrong! (File name or title change?)")
+            print(snapshot["title"], old[count]["title"])
+            exit()
+
+        exit()
+        difference = DeepDiff(old, new)
+
+        if difference == {}:
+            print("No difference, skipping...")
+            continue
+            
+        print(f"{difference['values_changed']}")
+
+        # There is a difference. Let's compare
+
+        """
+        Output example:
+        
+        {
+            "updated_fields" : [
+                {
+                    "name": "Job Title"
+                },
+                {
+                    "name": "Paycheck"
+                }
+            ]
+            "employees" : [
+                {
+                    "name": "Bob",
+                    "id": 100,
+                    new_fields : [
+                        {
+                            "Job Title": "200"
+                        }
+                    ]
+                }
+            ]
+        }
+
+        """
+
+    #print(difference)
 
     """
     last_snapshot_dicts

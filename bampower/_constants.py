@@ -33,7 +33,8 @@ def timestamp(format, time=now):
 NOW = now.strftime(TIME_FORMAT)
 LAST_RUN = _file_validator.load_last_run()
 
-CURRENT_SNAPSHOT_PATH = f"{FILES_PATH}/snapshots/{timestamp('filesafe')}/"
+#CURRENT_SNAPSHOT_PATH = f"{FILES_PATH}/snapshots/{timestamp('filesafe')}/"
+CURRENT_SNAPSHOT_PATH = f"{FILES_PATH}/snapshots/2023-05-30_13-34-57/"
 
 WATCHING_TEMPLATE = """[
     {
