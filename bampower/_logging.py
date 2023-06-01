@@ -1,6 +1,7 @@
 # Imports
 import logging
 from os import rename
+from shutil import copyfile
 import requests
 import yagmail
 
@@ -14,6 +15,9 @@ logger = logging.getLogger()
 def shut_down():
     # Move log.txt to current snapshot folder
     rename(f"{_constants.FILES_PATH}/log.txt", f"{_constants.CURRENT_SNAPSHOT_PATH}/log.txt")
+
+    # Copy watching.json to current snapshot folder
+    copyfile(f"{_constants.WATCHING_PATH}", f"{_constants.CURRENT_SNAPSHOT_PATH}/watching.json")
 
 def send_mail():
     logger.info("Something went wrong! Sending email message...")

@@ -21,7 +21,6 @@ _file_validator.main()
 
 metafields = _file_validator.load_file(_constants.METAFIELDS_PATH)
 watching = _file_validator.load_file(_constants.WATCHING_PATH)
-#snapshots = _file_validator.load_snapshots()
 
 def parse(string):
     string = string.lower()
@@ -67,12 +66,31 @@ def main():
     snapshots.sort(key=lambda x: datetime.strptime(x, "%Y-%m-%d_%H-%M-%S"))
     
     # Compare the current snapshot to the last snapshot
-    last_snapshot_path = f"{_constants.SNAPSHOTS_PATH}{snapshots[-2]}/"
+    last_snapshot_path = f"{_constants.SNAPSHOTS_PATH}{snapshots[-2]}"
+
+    # Error handling: Watch for renames
+    old_watching = _file_validator.load_file(f"{last_snapshot_path}/watching.json")
+    difference = DeepDiff(old_watching, watching)
+
+    for count, values_changed in enumerate(difference["values_changed"]):
+        print(values_changed)
+    exit()
 
     for entry in watching:
-        # TODO: Error handling here if JSON file does not exist (see slide 46)
-        old_snapshot = _file_validator.load_file(f"{last_snapshot_path}{entry['title']}.json")         
+        old_snapshot = _file_validator.load_file(f"{last_snapshot_path}/{entry['title']}.json")         
         new_snapshot = _file_validator.load_file(f"{_constants.CURRENT_SNAPSHOT_PATH}{entry['title']}.json")
+
+        # TODO: Error handling here if an employee is deleted (see slide 46).
+
+        '''
+        Edge Cases:
+        - watching.json is modified (new fields added, title field changed, etc...)
+        For normal operation, filenames in old_snapshot and new_snapshot need to remain the same, and match the 'title' field.
+        Let's create a backup of watching.json in each snapshot folder.
+
+        - an employee is deleted
+        I'm not sure how this affects the program yet, so I'll need to test it.
+        '''
 
         output = {
             "employees": [
@@ -87,10 +105,14 @@ def main():
             difference = DeepDiff(old_data, new_data)
 
             output["employees"].append(new_data)
+
+            for _, field in enumerate(entry["fields"]):
+                output["employees"][count].pop(field["alias"])
             
             if difference == {}:
                 # print(f"No updates for employee {new_data['id']}")
                 output["employees"][count]["new_values"] = None
+                output["employees"][count]["old_values"] = None
             else:
                 # print(f"Update detected in employee {new_data['id']}")
                 output["employees"][count]["new_values"] = difference["values_changed"]["root['jobTitle']"]["new_value"]
@@ -101,6 +123,8 @@ def main():
         print(output)
 
         # TODO: Add code here to POST output to power automate endpoints
+        
+        # response = requests.post(entry["sendToEndpoint"], headers=_constants.HEADERS, json=output)
 
     # Exit operations can go here...
     # _logging.shut_down()
