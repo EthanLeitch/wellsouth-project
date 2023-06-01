@@ -68,61 +68,42 @@ def main():
     
     # Compare the current snapshot to the last snapshot
     last_snapshot_path = f"{_constants.SNAPSHOTS_PATH}{snapshots[-2]}/"
-    
-    old = _file_validator.load_snapshot_files(last_snapshot_path)
-    new = _file_validator.load_snapshot_files(_constants.CURRENT_SNAPSHOT_PATH)
 
-    for count, snapshot in enumerate(new):
-        
-        if snapshot["title"] != old[count]["title"]:
-            print("Something has gone wrong! (File name or title change?)")
-            print(snapshot["title"], old[count]["title"])
-            exit()
+    for entry in watching:
+        # TODO: Error handling here if JSON file does not exist (see slide 46)
+        old_snapshot = _file_validator.load_file(f"{last_snapshot_path}{entry['title']}.json")         
+        new_snapshot = _file_validator.load_file(f"{_constants.CURRENT_SNAPSHOT_PATH}{entry['title']}.json")
 
-        exit()
-        difference = DeepDiff(old, new)
+        output = {
+            "employees": [
 
-        if difference == {}:
-            print("No difference, skipping...")
-            continue
-            
-        print(f"{difference['values_changed']}")
-
-        # There is a difference. Let's compare
-
-        """
-        Output example:
-        
-        {
-            "updated_fields" : [
-                {
-                    "name": "Job Title"
-                },
-                {
-                    "name": "Paycheck"
-                }
-            ]
-            "employees" : [
-                {
-                    "name": "Bob",
-                    "id": 100,
-                    new_fields : [
-                        {
-                            "Job Title": "200"
-                        }
-                    ]
-                }
             ]
         }
 
-        """
+        for count, new_data in enumerate(new_snapshot["employees"]):
 
-    #print(difference)
+            old_data = (old_snapshot["employees"][count])
 
-    """
-    last_snapshot_dicts
-    new_dicts
-    """
+            difference = DeepDiff(old_data, new_data)
+
+            output["employees"].append(new_data)
+            
+            if difference == {}:
+                # print(f"No updates for employee {new_data['id']}")
+                output["employees"][count]["new_values"] = None
+            else:
+                # print(f"Update detected in employee {new_data['id']}")
+                output["employees"][count]["new_values"] = difference["values_changed"]["root['jobTitle']"]["new_value"]
+                output["employees"][count]["old_values"] = difference["values_changed"]["root['jobTitle']"]["old_value"]
+            
+            #output["employees"].append("new_values")
+
+        print(output)
+
+        # TODO: Add code here to POST output to power automate endpoints
+
+    # Exit operations can go here...
+    # _logging.shut_down()
 
 if __name__ == "__main__":
     main()
