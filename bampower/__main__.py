@@ -12,10 +12,11 @@ import _file_validator
 
 # External module imports
 from os import path
+from os import rename
 import json
-import pathlib
 from datetime import datetime
 from deepdiff import DeepDiff
+import pathlib
 
 _file_validator.main()
 
@@ -29,7 +30,6 @@ def parse(string):
 
 def main():
     # Download all 'watching' fields and save them to current snapshot directory
-    """
     for entry in watching:
         payload = {}
 
@@ -48,19 +48,22 @@ def main():
         with open(file_path, 'w') as file:
             parsed_json = json.loads(response.text)
             file.write(json.dumps(parsed_json, indent = _constants.JSON_INDENT))
-    """
     
     print("Sorting snapshots...")
 
     snapshots = []
 
-    # Check each file_path in snapshots directory is the correct timestamp
+    # Check each snapshot folder in snapshots directory has the correct timestamp
     for file_path in list(pathlib.Path(_constants.SNAPSHOTS_PATH).iterdir()):
         try:
             datetime.strptime(file_path.name, "%Y-%m-%d_%H-%M-%S")
             snapshots.append(file_path.name)
         except ValueError as e:
             _logging.logger.warning(f"Unexpected file in snapshots directory: {e}")
+
+    # Finish if we've only got one snapshot, because we don't need to compare them.
+    if len(snapshots) == 1:
+        _logging.shut_down()
     
     # Sort the snapshots from oldest to newest
     snapshots.sort(key=lambda x: datetime.strptime(x, "%Y-%m-%d_%H-%M-%S"))
@@ -72,10 +75,15 @@ def main():
     old_watching = _file_validator.load_file(f"{last_snapshot_path}/watching.json")
     difference = DeepDiff(old_watching, watching)
 
-    for count, values_changed in enumerate(difference["values_changed"]):
-        print(values_changed)
-    exit()
+    if difference != {}:
+        for count, key in enumerate(difference["values_changed"]):
+            
+            if "title" in key:
+                d = difference["values_changed"][key]
+                print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
+                rename(f"{last_snapshot_path}/{d['old_value']}.json", f"{last_snapshot_path}/{d['new_value']}.json")
 
+    # Compare each old snapshot to the new snapshot
     for entry in watching:
         old_snapshot = _file_validator.load_file(f"{last_snapshot_path}/{entry['title']}.json")         
         new_snapshot = _file_validator.load_file(f"{_constants.CURRENT_SNAPSHOT_PATH}{entry['title']}.json")
@@ -127,7 +135,7 @@ def main():
         # response = requests.post(entry["sendToEndpoint"], headers=_constants.HEADERS, json=output)
 
     # Exit operations can go here...
-    # _logging.shut_down()
+    _logging.shut_down()
 
 if __name__ == "__main__":
     main()

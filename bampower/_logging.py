@@ -13,11 +13,15 @@ logging.basicConfig(filename=f"{_constants.FILES_PATH}/log.txt", format=LOGGING_
 logger = logging.getLogger()
 
 def shut_down():
+    print("Finished!")
+
     # Move log.txt to current snapshot folder
     rename(f"{_constants.FILES_PATH}/log.txt", f"{_constants.CURRENT_SNAPSHOT_PATH}/log.txt")
 
     # Copy watching.json to current snapshot folder
     copyfile(f"{_constants.WATCHING_PATH}", f"{_constants.CURRENT_SNAPSHOT_PATH}/watching.json")
+
+    exit()
 
 def send_mail():
     logger.info("Something went wrong! Sending email message...")
