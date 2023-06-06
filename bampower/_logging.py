@@ -1,16 +1,24 @@
-# Imports
+# Internal module imports
+import _constants
+
+# External module imports
 import logging
-from os import rename
+from os import rename, remove
 from shutil import copyfile
 import requests
 import yagmail
-
-import _constants
 
 # Set up logging (ISO 8601)
 LOGGING_FORMAT = '%(asctime)s %(message)s'
 logging.basicConfig(filename=f"{_constants.FILES_PATH}/log.txt", format=LOGGING_FORMAT, level=logging.INFO)
 logger = logging.getLogger()
+
+def log(level, message):
+    if level == "error":
+        logging.error(message)
+        print(message)
+        remove(_constants.CURRENT_SNAPSHOT_PATH)
+
 
 def shut_down():
     print("Finished!")
@@ -22,6 +30,7 @@ def shut_down():
     copyfile(f"{_constants.WATCHING_PATH}", f"{_constants.CURRENT_SNAPSHOT_PATH}/watching.json")
 
     exit()
+
 
 def send_mail():
     logger.info("Something went wrong! Sending email message...")

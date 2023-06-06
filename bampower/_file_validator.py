@@ -9,6 +9,8 @@ import requests
 import json
 from json import JSONDecodeError
 import pathlib
+import validators
+
 
 def main():
     # Create directories if they do not exist
@@ -30,18 +32,16 @@ def main():
 
         with open(_constants.WATCHING_PATH, 'w') as file:
             file.write(_constants.WATCHING_TEMPLATE)
+    else:
+        # Check that the URL is a valid url
+        watching = load_file(_constants.WATCHING_PATH)
 
-def load_snapshot_files(path):
-    '''Load snapshot files saved as files/snapshots/*.json'''
+        for entry in watching:
+            if not validators.url(entry["sendToEndpoint"]):
+                _logging.logger.error(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
+                print(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
+                exit()
 
-    snapshots = []
-
-    for file_path in list(pathlib.Path(path).iterdir()):
-        # Loading files...
-        file = load_file(file_path)
-        snapshots.append(file)
-
-    return snapshots
 
 def load_file(path):
     '''Load and return contents of a JSON file'''
@@ -53,6 +53,7 @@ def load_file(path):
             print(f"Error in file {path}")
             print(f"JSONDecodeError: {e}")
             exit()
+
 
 def load_last_run():
     '''Return timestamp that the program was last run'''

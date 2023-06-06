@@ -17,19 +17,23 @@ import json
 from datetime import datetime
 from deepdiff import DeepDiff
 import pathlib
+import requests
 
 _file_validator.main()
 
 metafields = _file_validator.load_file(_constants.METAFIELDS_PATH)
 watching = _file_validator.load_file(_constants.WATCHING_PATH)
 
-def parse(string):
-    string = string.lower()
-    string = string.replace(" ", "_")
-    return string
 
 def main():
-    # Download all 'watching' fields and save them to current snapshot directory
+    download()
+    last_snapshot_path = sort_snapshots()
+    compare_snapshots(last_snapshot_path)
+    _logging.shut_down()
+
+
+def download():
+    '''Download all 'watching' fields and save them to current snapshot directory'''
     for entry in watching:
         payload = {}
 
@@ -48,7 +52,9 @@ def main():
         with open(file_path, 'w') as file:
             parsed_json = json.loads(response.text)
             file.write(json.dumps(parsed_json, indent = _constants.JSON_INDENT))
-    
+
+
+def sort_snapshots():
     print("Sorting snapshots...")
 
     snapshots = []
@@ -63,15 +69,14 @@ def main():
 
     # Finish if we've only got one snapshot, because we don't need to compare them.
     if len(snapshots) == 1:
-        _logging.shut_down()
+        return
     
     # Sort the snapshots from oldest to newest
     snapshots.sort(key=lambda x: datetime.strptime(x, "%Y-%m-%d_%H-%M-%S"))
     
-    # Compare the current snapshot to the last snapshot
     last_snapshot_path = f"{_constants.SNAPSHOTS_PATH}{snapshots[-2]}"
 
-    # Error handling: Watch for renames
+    # Error handling: Watch for changes between old watching.json and latest one
     old_watching = _file_validator.load_file(f"{last_snapshot_path}/watching.json")
     difference = DeepDiff(old_watching, watching)
 
@@ -82,23 +87,17 @@ def main():
                 d = difference["values_changed"][key]
                 print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
                 rename(f"{last_snapshot_path}/{d['old_value']}.json", f"{last_snapshot_path}/{d['new_value']}.json")
+    
+    return last_snapshot_path
 
+
+def compare_snapshots(last_snapshot_path):
     # Compare each old snapshot to the new snapshot
     for entry in watching:
         old_snapshot = _file_validator.load_file(f"{last_snapshot_path}/{entry['title']}.json")         
         new_snapshot = _file_validator.load_file(f"{_constants.CURRENT_SNAPSHOT_PATH}{entry['title']}.json")
 
         # TODO: Error handling here if an employee is deleted (see slide 46).
-
-        '''
-        Edge Cases:
-        - watching.json is modified (new fields added, title field changed, etc...)
-        For normal operation, filenames in old_snapshot and new_snapshot need to remain the same, and match the 'title' field.
-        Let's create a backup of watching.json in each snapshot folder.
-
-        - an employee is deleted
-        I'm not sure how this affects the program yet, so I'll need to test it.
-        '''
 
         output = {
             "employees": [
@@ -132,10 +131,8 @@ def main():
 
         # TODO: Add code here to POST output to power automate endpoints
         
-        # response = requests.post(entry["sendToEndpoint"], headers=_constants.HEADERS, json=output)
+        response = requests.post(entry["sendToEndpoint"], headers=_constants.HEADERS, json=output)
 
-    # Exit operations can go here...
-    _logging.shut_down()
 
 if __name__ == "__main__":
     main()
