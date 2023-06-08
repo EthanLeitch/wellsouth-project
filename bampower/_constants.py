@@ -22,20 +22,17 @@ LOG_PATH = path.join(FILES_PATH, "log.txt")
 
 # Set up time (ISO 8601)
 now = datetime.datetime.now()
-#TIME_FORMAT = ""
-TIME_FORMAT = "%Y-%m-%d-%H:%M:%S"
 
 def timestamp(format, time=now):
+    '''Returns a timestamp string'''
     if format == "filesafe":
         return time.strftime("%Y-%m-%d_%H-%M-%S")
     elif format == "bamboo":
         return time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-NOW = now.strftime(TIME_FORMAT)
 LAST_RUN = _file_validator.load_last_run()
 
 CURRENT_SNAPSHOT_PATH = path.join(SNAPSHOTS_PATH, timestamp('filesafe'))
-#f"{FILES_PATH}/snapshots/{timestamp('filesafe')}/"
 
 WATCHING_TEMPLATE = """[
     {

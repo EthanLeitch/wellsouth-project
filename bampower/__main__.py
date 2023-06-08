@@ -73,7 +73,7 @@ def sort_snapshots():
     # Sort the snapshots from oldest to newest
     snapshots.sort(key=lambda x: datetime.strptime(x, "%Y-%m-%d_%H-%M-%S"))
     
-    last_snapshot_path = f"{_constants.SNAPSHOTS_PATH}{snapshots[-2]}"
+    last_snapshot_path = path.join(_constants.SNAPSHOTS_PATH, snapshots[-2])
 
     # Error handling: Watch for changes between old watching.json and latest one
     old_watching = _file_validator.load_file(path.join(last_snapshot_path, "watching.json"))
@@ -107,28 +107,51 @@ def compare_snapshots(last_snapshot_path):
             ]
         }
 
+        # Iterate over all employees
         for count, new_data in enumerate(new_snapshot["employees"]):
 
             old_data = (old_snapshot["employees"][count])
 
-            difference = DeepDiff(old_data, new_data)
+            difference = DeepDiff(old_data, new_data, ignore_type_in_groups=[(int, str, None)])
 
             output["employees"].append(new_data)
 
-            for _, field in enumerate(entry["fields"]):
-                output["employees"][count].pop(field["alias"])
+            # Remove all key-value pairs from employee save for ID (we'll kinda add them back later)
+            for _, key in enumerate(entry["fields"]):
+                output["employees"][count].pop(key["alias"])
+
+            new_values = []
+            old_values = []
             
             if difference == {}:
-                # print(f"No updates for employee {new_data['id']}")
-                output["employees"][count]["new_values"] = None
-                output["employees"][count]["old_values"] = None
+                # No updates for this employee, so we can skip them
+                print(f"No updates for employee {new_data['id']}")
+                for _ in enumerate(entry["fields"]):
+                    new_values.append(None)
+                    old_values.append(None)
             else:
+                # Fill "new_values" and "old_values" with their respective values from the difference dictionary
                 # print(f"Update detected in employee {new_data['id']}")
-                output["employees"][count]["new_values"] = difference["values_changed"]["root['jobTitle']"]["new_value"]
-                output["employees"][count]["old_values"] = difference["values_changed"]["root['jobTitle']"]["old_value"]
-            
-            #output["employees"].append("new_values")
+                # print(difference)
+                
+                for _, field in enumerate(difference["values_changed"]):
+                    #print(field)
 
+                    for _, key in enumerate(entry["fields"]):
+                        # Check if individual key has an update or not
+                        if (key['alias'] in str(field)):
+                            # print(key['alias'], "==", field)
+                            new_values.append(difference["values_changed"][f"{field}"]["new_value"])
+                            old_values.append(difference["values_changed"][f"{field}"]["old_value"])
+                        else:
+                            new_values.append(None)
+                            old_values.append(None)
+
+            # Add new_values and old_values to employee table
+            output["employees"][count]["new_values"] = new_values
+            output["employees"][count]["old_values"] = old_values
+
+        
         print(output)
 
         # TODO: Add code here to POST output to power automate endpoints
