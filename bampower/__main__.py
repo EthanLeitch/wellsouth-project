@@ -11,8 +11,7 @@ import _common
 import _file_validator
 
 # External module imports
-from os import path
-from os import rename
+from os import path, rename
 import json
 from datetime import datetime
 from deepdiff import DeepDiff
@@ -45,7 +44,7 @@ def download():
 
         response = _common.request_url("POST", "/v1/reports/custom?format=JSON&onlyCurrent=true", payload)
 
-        file_path = f"{_constants.CURRENT_SNAPSHOT_PATH}{payload['title']}.json"
+        file_path = path.join(_constants.CURRENT_SNAPSHOT_PATH, f"{payload['title']}.json")
 
         print(f"Getting {payload['title']}")
 
@@ -77,16 +76,19 @@ def sort_snapshots():
     last_snapshot_path = f"{_constants.SNAPSHOTS_PATH}{snapshots[-2]}"
 
     # Error handling: Watch for changes between old watching.json and latest one
-    old_watching = _file_validator.load_file(f"{last_snapshot_path}/watching.json")
+    old_watching = _file_validator.load_file(path.join(last_snapshot_path, "watching.json"))
     difference = DeepDiff(old_watching, watching)
 
     if difference != {}:
+        # print(difference)
         for count, key in enumerate(difference["values_changed"]):
             
             if "title" in key:
                 d = difference["values_changed"][key]
                 print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
-                rename(f"{last_snapshot_path}/{d['old_value']}.json", f"{last_snapshot_path}/{d['new_value']}.json")
+                rename(path.join(last_snapshot_path, f"{d['old_value']}.json"), path.join(last_snapshot_path, f"{d['new_value']}.json"))
+
+        # print("watching.json: schema has changed. Please remove all prior snapshots, and run the program again.")
     
     return last_snapshot_path
 
@@ -94,8 +96,8 @@ def sort_snapshots():
 def compare_snapshots(last_snapshot_path):
     # Compare each old snapshot to the new snapshot
     for entry in watching:
-        old_snapshot = _file_validator.load_file(f"{last_snapshot_path}/{entry['title']}.json")         
-        new_snapshot = _file_validator.load_file(f"{_constants.CURRENT_SNAPSHOT_PATH}{entry['title']}.json")
+        old_snapshot = _file_validator.load_file(path.join(last_snapshot_path, f"{entry['title']}.json"))
+        new_snapshot = _file_validator.load_file(path.join(_constants.CURRENT_SNAPSHOT_PATH, f"{entry['title']}.json"))
 
         # TODO: Error handling here if an employee is deleted (see slide 46).
 
@@ -135,4 +137,9 @@ def compare_snapshots(last_snapshot_path):
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Caught error in main: {e}")
+        _logging.logger.error(f"Caught error in main: {e}")
+        _logging.shut_down("error")

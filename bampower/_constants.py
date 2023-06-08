@@ -13,11 +13,12 @@ JSON_INDENT = 4
 
 # Set up file paths and templates
 absolute_path = path.dirname(__file__)
-FILES_PATH = path.join(absolute_path, "../files")
-SNAPSHOTS_PATH = f"{FILES_PATH}/snapshots/"
-METAFIELDS_PATH = f"{FILES_PATH}/metafields.json"
-WATCHING_PATH = f"{FILES_PATH}/watching.json"
-LAST_RUN_PATH = f"{FILES_PATH}/last_run.json"
+FILES_PATH = path.join(absolute_path, "..", "files")
+SNAPSHOTS_PATH = path.join(FILES_PATH, "snapshots")
+METAFIELDS_PATH = path.join(FILES_PATH, "metafields.json")
+WATCHING_PATH = path.join(FILES_PATH, "watching.json")
+LAST_RUN_PATH = path.join(FILES_PATH, "last_run.json")
+LOG_PATH = path.join(FILES_PATH, "log.txt")
 
 # Set up time (ISO 8601)
 now = datetime.datetime.now()
@@ -33,7 +34,8 @@ def timestamp(format, time=now):
 NOW = now.strftime(TIME_FORMAT)
 LAST_RUN = _file_validator.load_last_run()
 
-CURRENT_SNAPSHOT_PATH = f"{FILES_PATH}/snapshots/{timestamp('filesafe')}/"
+CURRENT_SNAPSHOT_PATH = path.join(SNAPSHOTS_PATH, timestamp('filesafe'))
+#f"{FILES_PATH}/snapshots/{timestamp('filesafe')}/"
 
 WATCHING_TEMPLATE = """[
     {

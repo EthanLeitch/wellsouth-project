@@ -3,36 +3,39 @@ import _constants
 
 # External module imports
 import logging
-from os import rename, remove
-from shutil import copyfile
+from os import rename, remove, path
+from shutil import copyfile, rmtree
 import requests
 import yagmail
 
 # Set up logging (ISO 8601)
 LOGGING_FORMAT = '%(asctime)s %(message)s'
-logging.basicConfig(filename=f"{_constants.FILES_PATH}/log.txt", format=LOGGING_FORMAT, level=logging.INFO)
+logging.basicConfig(filename=_constants.LOG_PATH, format=LOGGING_FORMAT, level=logging.INFO)
 logger = logging.getLogger()
 
-def log(level, message):
-    if level == "error":
-        logging.error(message)
-        print(message)
-        remove(_constants.CURRENT_SNAPSHOT_PATH)
 
+def shut_down(type="normal"):
+    '''Move working files and shut down the program'''
 
-def shut_down():
-    print("Finished!")
+    print(f"Program ended ({type})")
+    logging.info(f"Program ended ({type})")
 
-    # Move log.txt to current snapshot folder
-    rename(f"{_constants.FILES_PATH}/log.txt", f"{_constants.CURRENT_SNAPSHOT_PATH}/log.txt")
+    if type == "normal":
+        # Move log.txt to current snapshot folder
+        rename(_constants.LOG_PATH, path.join(_constants.CURRENT_SNAPSHOT_PATH, "log.txt"))
 
-    # Copy watching.json to current snapshot folder
-    copyfile(f"{_constants.WATCHING_PATH}", f"{_constants.CURRENT_SNAPSHOT_PATH}/watching.json")
+        # Copy watching.json to current snapshot folder
+        copyfile(_constants.WATCHING_PATH, path.join(_constants.CURRENT_SNAPSHOT_PATH, "watching.json"))
+    
+    if type == "error":
+        # Delete current snapshot 
+        rmtree(_constants.CURRENT_SNAPSHOT_PATH)
 
     exit()
 
 
 def send_mail():
+    '''Send an email alert'''
     logger.info("Something went wrong! Sending email message...")
 
     yag = yagmail.SMTP(_constants.config["EMAIL_ADDRESS"], _constants.config["EMAIL_PASSWORD"])
