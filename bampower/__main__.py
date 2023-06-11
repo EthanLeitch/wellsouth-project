@@ -17,6 +17,7 @@ from datetime import datetime
 from deepdiff import DeepDiff
 import pathlib
 import requests
+import traceback
 
 _file_validator.main()
 
@@ -131,21 +132,18 @@ def compare_snapshots(last_snapshot_path):
                     old_values.append(None)
             else:
                 # Fill "new_values" and "old_values" with their respective values from the difference dictionary
-                # print(f"Update detected in employee {new_data['id']}")
-                # print(difference)
-                
-                for _, field in enumerate(difference["values_changed"]):
-                    #print(field)
+                print(f"Update detected in employee {new_data['id']}")
 
-                    for _, key in enumerate(entry["fields"]):
-                        # Check if individual key has an update or not
-                        if (key['alias'] in str(field)):
-                            # print(key['alias'], "==", field)
-                            new_values.append(difference["values_changed"][f"{field}"]["new_value"])
-                            old_values.append(difference["values_changed"][f"{field}"]["old_value"])
-                        else:
-                            new_values.append(None)
-                            old_values.append(None)
+                for _, key in enumerate(entry["fields"]):
+                    # Check if individual key has an update or not
+                    if (key['alias'] in str(difference['values_changed'])):
+                        # This could be better -- root['value'] is hardcoded
+                        new_values.append(difference["values_changed"][f"root['{key['alias']}']"]["new_value"])
+                        old_values.append(difference["values_changed"][f"root['{key['alias']}']"]["old_value"])
+                    else:
+                        # No updates for this specific key, so write None
+                        new_values.append(None)
+                        old_values.append(None)
 
             # Add new_values and old_values to employee table
             output["employees"][count]["new_values"] = new_values
@@ -153,6 +151,8 @@ def compare_snapshots(last_snapshot_path):
 
         
         print(output)
+
+        # TODO: Add code here to check if schema is valid.
 
         # TODO: Add code here to POST output to power automate endpoints
         
@@ -163,6 +163,4 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"Caught error in main: {e}")
-        _logging.logger.error(f"Caught error in main: {e}")
         _logging.shut_down("error")

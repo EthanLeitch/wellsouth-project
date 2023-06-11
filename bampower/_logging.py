@@ -7,6 +7,7 @@ from os import rename, remove, path
 from shutil import copyfile, rmtree
 import requests
 import yagmail
+import traceback
 
 # Set up logging (ISO 8601)
 LOGGING_FORMAT = '%(asctime)s %(message)s'
@@ -28,6 +29,10 @@ def shut_down(type="normal"):
         copyfile(_constants.WATCHING_PATH, path.join(_constants.CURRENT_SNAPSHOT_PATH, "watching.json"))
     
     if type == "error":
+        # Print traceback 
+        traceback.print_exc()
+        logger.error(traceback.format_exc())
+
         # Delete current snapshot 
         rmtree(_constants.CURRENT_SNAPSHOT_PATH)
 

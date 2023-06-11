@@ -10,6 +10,7 @@ import json
 from json import JSONDecodeError
 import pathlib
 import validators
+import traceback
 
 
 def main():
@@ -38,6 +39,7 @@ def main():
 
         for entry in watching:
             if not validators.url(entry["sendToEndpoint"]):
+                #raise JSONDecodeError(msg, doc, pos)
                 _logging.logger.error(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
                 print(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
                 exit()
@@ -49,10 +51,7 @@ def load_file(path):
         try:
             return json.load(file)
         except JSONDecodeError as e:
-            _logging.logger.error(f"Error in file {path}\nJSONDecodeError: {e}")
-            print(f"Error in file {path}")
-            print(f"JSONDecodeError: {e}")
-            exit()
+            _logging.shut_down("error")
 
 
 def load_last_run():
