@@ -27,12 +27,16 @@ def shut_down(type="normal"):
 
         # Copy watching.json to current snapshot folder
         copyfile(_constants.WATCHING_PATH, path.join(_constants.CURRENT_SNAPSHOT_PATH, "watching.json"))
-    
-    if type == "error":
+
+    elif type == "error":
         # Print traceback 
         traceback.print_exc()
         logger.error(traceback.format_exc())
 
+        # Delete current snapshot 
+        rmtree(_constants.CURRENT_SNAPSHOT_PATH)
+    
+    elif type == "debug":
         # Delete current snapshot 
         rmtree(_constants.CURRENT_SNAPSHOT_PATH)
 

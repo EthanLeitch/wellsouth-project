@@ -6,11 +6,13 @@ import _common
 # Imports
 from os import path, remove
 import requests
+from requests.exceptions import InvalidURL
 import json
 from json import JSONDecodeError
 import pathlib
 import validators
 import traceback
+from jsonschema import validate
 
 
 def main():
@@ -40,10 +42,18 @@ def main():
         for entry in watching:
             if not validators.url(entry["sendToEndpoint"]):
                 #raise JSONDecodeError(msg, doc, pos)
-                _logging.logger.error(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
-                print(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
+                raise InvalidURL(f"{entry['sendToEndpoint']} is not a valid URL.")
+                _logging.shut_down("error")
+                #_logging.logger.error(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
+                #print(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
                 exit()
-
+    
+    # Validate watching.json schema
+    watching = load_file(_constants.WATCHING_PATH)
+    try:
+        validate(watching, schema=_constants.WATCHING_SCHEMA)
+    except ValidationError as e:
+        _logging.shut_down("error")
 
 def load_file(path):
     '''Load and return contents of a JSON file'''

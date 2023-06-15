@@ -49,6 +49,27 @@ WATCHING_TEMPLATE = """[
 ]
 """
 
+WATCHING_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "title": {"type": "string"},
+            "sendToEndpoint": {"type": "string"},
+            "fields": {
+                "type": "array",
+                "properties": {
+                    "name": {"type": "string"},
+                    "type": {"type": "string"},
+                    "alias": {"type": "string"}
+                },
+                "required": ["name", "type", "alias"],
+                "additionalProperties": False
+            }
+        }
+    }
+}
+
 # Load .env values
 config = dotenv_values(".env")
 

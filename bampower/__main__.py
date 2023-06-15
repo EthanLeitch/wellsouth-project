@@ -28,7 +28,11 @@ watching = _file_validator.load_file(_constants.WATCHING_PATH)
 def main():
     download()
     last_snapshot_path = sort_snapshots()
-    compare_snapshots(last_snapshot_path)
+    
+    # Skip if there's only 1 snapshot
+    if last_snapshot_path != None:
+        compare_snapshots(last_snapshot_path)
+    
     _logging.shut_down()
 
 
@@ -81,7 +85,9 @@ def sort_snapshots():
     difference = DeepDiff(old_watching, watching)
 
     if difference != {}:
-        # print(difference)
+        print(difference)
+        _logging.shut_down("debug")
+
         for count, key in enumerate(difference["values_changed"]):
             
             if "title" in key:
@@ -89,7 +95,7 @@ def sort_snapshots():
                 print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
                 rename(path.join(last_snapshot_path, f"{d['old_value']}.json"), path.join(last_snapshot_path, f"{d['new_value']}.json"))
 
-        # print("watching.json: schema has changed. Please remove all prior snapshots, and run the program again.")
+        # print("watching.json: additional fields have been added. Please remove all prior snapshots, and run the program again.")
     
     return last_snapshot_path
 
@@ -152,7 +158,7 @@ def compare_snapshots(last_snapshot_path):
         
         print(output)
 
-        # TODO: Add code here to check if schema is valid.
+        # TODO: Add code here to check if schema is valid?
 
         # TODO: Add code here to POST output to power automate endpoints
         
