@@ -39,21 +39,19 @@ def main():
         # Check that the URL is a valid url
         watching = load_file(_constants.WATCHING_PATH)
 
+        # Validate watching.json schema
+        try:
+            validate(watching, schema=_constants.WATCHING_SCHEMA)
+        except Exception as e:
+            _logging.shut_down("error")
+
+        # Raise InvalidURL error if url is not valid
         for entry in watching:
             if not validators.url(entry["sendToEndpoint"]):
-                #raise JSONDecodeError(msg, doc, pos)
-                raise InvalidURL(f"{entry['sendToEndpoint']} is not a valid URL.")
-                _logging.shut_down("error")
-                #_logging.logger.error(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
-                #print(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
-                exit()
-    
-    # Validate watching.json schema
-    watching = load_file(_constants.WATCHING_PATH)
-    try:
-        validate(watching, schema=_constants.WATCHING_SCHEMA)
-    except ValidationError as e:
-        _logging.shut_down("error")
+                try:
+                    raise InvalidURL(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
+                except Exception:
+                    _logging.shut_down("error")
 
 def load_file(path):
     '''Load and return contents of a JSON file'''

@@ -15,7 +15,7 @@ logging.basicConfig(filename=_constants.LOG_PATH, format=LOGGING_FORMAT, level=l
 logger = logging.getLogger()
 
 
-def shut_down(type="normal"):
+def shut_down(type="normal", trace=True):
     '''Move working files and shut down the program'''
 
     print(f"Program ended ({type})")
@@ -29,9 +29,10 @@ def shut_down(type="normal"):
         copyfile(_constants.WATCHING_PATH, path.join(_constants.CURRENT_SNAPSHOT_PATH, "watching.json"))
 
     elif type == "error":
-        # Print traceback 
-        traceback.print_exc()
-        logger.error(traceback.format_exc())
+        if trace:
+            # Print traceback 
+            traceback.print_exc()
+            logger.error(traceback.format_exc())
 
         # Delete current snapshot 
         rmtree(_constants.CURRENT_SNAPSHOT_PATH)

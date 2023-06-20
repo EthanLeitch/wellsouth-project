@@ -66,7 +66,9 @@ WATCHING_SCHEMA = {
                 "required": ["name", "type", "alias"],
                 "additionalProperties": False
             }
-        }
+        },
+        "required": ["title", "sendToEndpoint", "fields"],
+        "additionalProperties": False
     }
 }
 
