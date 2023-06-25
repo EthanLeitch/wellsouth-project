@@ -21,8 +21,8 @@ import traceback
 
 _file_validator.main()
 
-metafields = _file_validator.load_file(_constants.METAFIELDS_PATH)
-watching = _file_validator.load_file(_constants.WATCHING_PATH)
+metafields = _common.load_file(_constants.METAFIELDS_PATH)
+watching = _common.load_file(_constants.WATCHING_PATH)
 
 
 def main():
@@ -81,7 +81,7 @@ def sort_snapshots():
     last_snapshot_path = path.join(_constants.SNAPSHOTS_PATH, snapshots[-2])
 
     # Error handling: Watch for changes between old watching.json and latest one
-    old_watching = _file_validator.load_file(path.join(last_snapshot_path, "watching.json"))
+    old_watching = _common.load_file(path.join(last_snapshot_path, "watching.json"))
 
     difference = DeepDiff(old_watching, watching)
 
@@ -118,8 +118,8 @@ def sort_snapshots():
 def compare_snapshots(last_snapshot_path):
     # Compare each old snapshot to the new snapshot
     for entry in watching:
-        old_snapshot = _file_validator.load_file(path.join(last_snapshot_path, f"{entry['title']}.json"))
-        new_snapshot = _file_validator.load_file(path.join(_constants.CURRENT_SNAPSHOT_PATH, f"{entry['title']}.json"))
+        old_snapshot = _common.load_file(path.join(last_snapshot_path, f"{entry['title']}.json"))
+        new_snapshot = _common.load_file(path.join(_constants.CURRENT_SNAPSHOT_PATH, f"{entry['title']}.json"))
 
         # TODO: Error handling here if an employee is deleted (see slide 46).
 

@@ -8,7 +8,6 @@ from os import path, remove
 import requests
 from requests.exceptions import InvalidURL
 import json
-from json import JSONDecodeError
 import pathlib
 import validators
 import traceback
@@ -37,7 +36,7 @@ def main():
             file.write(_constants.WATCHING_TEMPLATE)
     else:
         # Check that the URL is a valid url
-        watching = load_file(_constants.WATCHING_PATH)
+        watching = _common.load_file(_constants.WATCHING_PATH)
 
         # Validate watching.json schema
         try:
@@ -53,13 +52,7 @@ def main():
                 except Exception:
                     _logging.shut_down("error")
 
-def load_file(path):
-    '''Load and return contents of a JSON file'''
-    with open(path, 'r') as file:
-        try:
-            return json.load(file)
-        except JSONDecodeError as e:
-            _logging.shut_down("error")
+
 
 
 def load_last_run():
@@ -69,7 +62,7 @@ def load_last_run():
         last_run = {"lastRun": _constants.timestamp('filesafe')}
     else:
         # Load existing last_run.json file
-        last_run = load_file(_constants.LAST_RUN_PATH)
+        last_run = _common.load_file(_constants.LAST_RUN_PATH)
         # Remove existing last_run.json file
         remove(_constants.LAST_RUN_PATH)
 

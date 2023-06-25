@@ -2,6 +2,8 @@
 import _constants
 
 import requests
+import json
+from json import JSONDecodeError
 
 def request_url(request_type, url_end, payload=None):
     '''Sends a GET/POST request to BambooHR'''
@@ -20,3 +22,12 @@ def request_url(request_type, url_end, payload=None):
             response = requests.post(url, headers=_constants.HEADERS)
     
     return response
+
+
+def load_file(path):
+    '''Load and return contents of a JSON file'''
+    with open(path, 'r') as file:
+        try:
+            return json.load(file)
+        except JSONDecodeError as e:
+            _logging.shut_down("error")
