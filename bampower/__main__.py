@@ -169,12 +169,19 @@ def compare_snapshots(last_snapshot_path):
             # Add new_values and old_values to employee table
             output["employees"][count]["new_values"] = new_values
             output["employees"][count]["old_values"] = old_values
+
+        output = json.dumps(output)
         
         print(output)
 
         # TODO: Add code here to POST output to power automate endpoints
-        
-        response = requests.post(entry["sendToEndpoint"], headers=_constants.HEADERS, json=output)
+
+        headers2 = {
+            "Accept": "application/json"
+        }
+
+        response = requests.post(entry["sendToEndpoint"], headers=headers2, json=output)
+        print(response)
 
 
 if __name__ == "__main__":
