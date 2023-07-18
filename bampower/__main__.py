@@ -80,6 +80,7 @@ def sort_snapshots():
     
     last_snapshot_path = path.join(_constants.SNAPSHOTS_PATH, snapshots[-2])
 
+    """
     # Error handling: Watch for changes between old watching.json and latest one
     old_watching = _common.load_file(path.join(last_snapshot_path, "watching.json"))
 
@@ -89,8 +90,20 @@ def sort_snapshots():
         print("watching.json: File has been modified. Please remove all previous snapshots, and run the program again.")
         _logging.error("watching.json: File has been modified. Please remove all previous snapshots, and run the program again.")
         _logging.shut_down("error", trace=False)
-    
     """
+
+    # patch_changes()
+    
+    return last_snapshot_path
+
+"""
+def patch_changes():
+
+    old_watching = _common.load_file(path.join(last_snapshot_path, "watching.json"))
+
+    difference = DeepDiff(old_watching, watching)
+
+    '''Attempt to patch if changes are made to watching.json'''
     for entry in watching:
 
         # Find old_entry that matches current entry
@@ -98,8 +111,10 @@ def sort_snapshots():
             if old_entry["title"] == entry["title"]:
                 selected_old_entry = old_entry
                 break
-    
+
         difference = DeepDiff(selected_old_entry, entry)
+        print(difference)
+        _logging.shut_down("debug")
 
         if difference != {}:
 
@@ -110,18 +125,23 @@ def sort_snapshots():
                     print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
                     _logging.logger.warn(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
                     rename(path.join(last_snapshot_path, f"{d['old_value']}.json"), path.join(last_snapshot_path, f"{d['new_value']}.json"))
-    """
-        
-    return last_snapshot_path
+"""
 
 
 def compare_snapshots(last_snapshot_path):
-    # Compare each old snapshot to the new snapshot
+    '''Compare each old snapshot to the new snapshot'''
+
     for entry in watching:
-        old_snapshot = _common.load_file(path.join(last_snapshot_path, f"{entry['title']}.json"))
+        try:
+            old_snapshot = _common.load_file(path.join(last_snapshot_path, f"{entry['title']}.json"))
+        except FileNotFoundError:
+            # Old .json does not exist, so let's skip comparing it, as it is a newly-created .json
+            print(f"New item ({entry['title']}) added to watching.json, skipping and not posting...")
+            continue
+        
         new_snapshot = _common.load_file(path.join(_constants.CURRENT_SNAPSHOT_PATH, f"{entry['title']}.json"))
 
-        # TODO: Error handling here if an employee is deleted (see slide 46).
+        # TODO: Patch code here!
 
         output = {
             "employees": [
@@ -174,14 +194,15 @@ def compare_snapshots(last_snapshot_path):
         
         print(output)
 
-        # TODO: Add code here to POST output to power automate endpoints
-
+        """
+        Post to Power Automate...
         headers2 = {
             "Accept": "application/json"
         }
 
         response = requests.post(entry["sendToEndpoint"], headers=headers2, json=output)
         print(response)
+        """
 
 
 if __name__ == "__main__":
