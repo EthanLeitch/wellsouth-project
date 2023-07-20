@@ -45,7 +45,7 @@ def download():
         payload["fields"] = []
 
         for field in entry["fields"]:
-            payload["fields"].append(field["alias"])
+            payload["fields"].append(field["id"])
 
         response = _common.request_url("POST", "/v1/reports/custom?format=JSON&onlyCurrent=true", payload)
 
@@ -55,6 +55,16 @@ def download():
 
         with open(file_path, 'w') as file:
             parsed_json = json.loads(response.text)
+
+            # Check that we recieved as many fields as we got
+            if len(entry["fields"]) != len(parsed_json["fields"]):
+                print(f"{entry['title']} did not recieve all fields. Check that fields have the correct keys.")
+                _logging.shut_down("error")
+            
+            # Rename "id" to "employee_id" to avoid conflicts with metafields that only have id keys
+            for field in parsed_json["employees"]:
+                field["employee_id"] = field.pop("id")
+                            
             file.write(json.dumps(parsed_json, indent = _constants.JSON_INDENT))
 
 
@@ -92,29 +102,18 @@ def sort_snapshots():
         _logging.shut_down("error", trace=False)
     """
 
-    """
     # Rename .json files if their name changes in watching.json
     old_watching = _common.load_file(path.join(last_snapshot_path, "watching.json"))
     difference = DeepDiff(old_watching, watching)
 
-    for entry in watching:
-        # Find old_entry that matches current entry
-        for old_entry in old_watching:
-            if old_entry["title"] == entry["title"]:
-                selected_old_entry = old_entry
-                break
-
-        difference = DeepDiff(selected_old_entry, entry)
-
-        if difference != {}:
-            if "values_changed" in difference:
-                for count, key in enumerate(difference["values_changed"]):
-                    if "title" in key:
-                        d = difference["values_changed"][key]
-                        print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
-                        _logging.logger.warn(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
-                        rename(path.join(last_snapshot_path, f"{d['old_value']}.json"), path.join(last_snapshot_path, f"{d['new_value']}.json"))
-    """
+    if difference != {}:
+        if "values_changed" in difference:
+            for count, key in enumerate(difference["values_changed"]):
+                if "title" in key:
+                    d = difference["values_changed"][key]
+                    print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
+                    _logging.logger.warning(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
+                    rename(path.join(last_snapshot_path, f"{d['old_value']}.json"), path.join(last_snapshot_path, f"{d['new_value']}.json"))
     
     return last_snapshot_path
 
@@ -132,8 +131,6 @@ def compare_snapshots(last_snapshot_path):
         
         new_snapshot = _common.load_file(path.join(_constants.CURRENT_SNAPSHOT_PATH, f"{entry['title']}.json"))
 
-        # TODO: Patch code here!
-
         output = {
             "employees": [
 
@@ -149,30 +146,31 @@ def compare_snapshots(last_snapshot_path):
 
             output["employees"].append(new_data)
 
-            # Remove all key-value pairs from employee save for ID (we'll kinda add them back later)
-            for _, key in enumerate(entry["fields"]):
-                output["employees"][count].pop(key["alias"])
+            # Remove all key-value pairs from employee save for employee_id (we'll add some of them back later)
+            for item in list(output["employees"][count]):
+                if item != "employee_id":
+                    output["employees"][count].pop(item)
 
             new_values = []
             old_values = []
             
             if difference == {}:
                 # No updates for this employee, so we can skip them
-                # print(f"No updates for employee {new_data['id']}")
+                # print(f"No updates for employee {new_data['employee_id']}")
                 for _ in enumerate(entry["fields"]):
                     new_values.append(None)
                     old_values.append(None)
             else:
                 # Fill "new_values" and "old_values" with their respective values from the difference dictionary
-                print(f"Update detected in employee {new_data['id']}")
+                print(f"Update detected in employee {new_data['employee_id']}")
 
                 for _, key in enumerate(entry["fields"]):
                     if "values_changed" in difference:
                         # Check if individual key has an update or not
-                        if (key['alias'] in str(difference['values_changed'])):
+                        if (key['id'] in str(difference['values_changed'])):
                             # This could be better -- root['value'] is hardcoded
-                            new_values.append(difference["values_changed"][f"root['{key['alias']}']"]["new_value"])
-                            old_values.append(difference["values_changed"][f"root['{key['alias']}']"]["old_value"])
+                            new_values.append(difference["values_changed"][f"root['{key['id']}']"]["new_value"])
+                            old_values.append(difference["values_changed"][f"root['{key['id']}']"]["old_value"])
                         else:
                             # No updates for this specific key, so write None
                             new_values.append(None)
