@@ -92,20 +92,12 @@ def sort_snapshots():
         _logging.shut_down("error", trace=False)
     """
 
-    # patch_changes()
-    
-    return last_snapshot_path
-
-"""
-def patch_changes():
-
+    """
+    # Rename .json files if their name changes in watching.json
     old_watching = _common.load_file(path.join(last_snapshot_path, "watching.json"))
-
     difference = DeepDiff(old_watching, watching)
 
-    '''Attempt to patch if changes are made to watching.json'''
     for entry in watching:
-
         # Find old_entry that matches current entry
         for old_entry in old_watching:
             if old_entry["title"] == entry["title"]:
@@ -113,19 +105,18 @@ def patch_changes():
                 break
 
         difference = DeepDiff(selected_old_entry, entry)
-        print(difference)
-        _logging.shut_down("debug")
 
         if difference != {}:
-
-            for count, key in enumerate(difference["values_changed"]):
-                
-                if "title" in key:
-                    d = difference["values_changed"][key]
-                    print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
-                    _logging.logger.warn(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
-                    rename(path.join(last_snapshot_path, f"{d['old_value']}.json"), path.join(last_snapshot_path, f"{d['new_value']}.json"))
-"""
+            if "values_changed" in difference:
+                for count, key in enumerate(difference["values_changed"]):
+                    if "title" in key:
+                        d = difference["values_changed"][key]
+                        print(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
+                        _logging.logger.warn(f"watching.json: title field has changed from {d['old_value']} to {d['new_value']}. Renaming files...")
+                        rename(path.join(last_snapshot_path, f"{d['old_value']}.json"), path.join(last_snapshot_path, f"{d['new_value']}.json"))
+    """
+    
+    return last_snapshot_path
 
 
 def compare_snapshots(last_snapshot_path):
@@ -136,7 +127,7 @@ def compare_snapshots(last_snapshot_path):
             old_snapshot = _common.load_file(path.join(last_snapshot_path, f"{entry['title']}.json"))
         except FileNotFoundError:
             # Old .json does not exist, so let's skip comparing it, as it is a newly-created .json
-            print(f"New item ({entry['title']}) added to watching.json, skipping and not posting...")
+            print(f"New item ({entry['title']}) added to watching.json, skipping without posting...")
             continue
         
         new_snapshot = _common.load_file(path.join(_constants.CURRENT_SNAPSHOT_PATH, f"{entry['title']}.json"))
@@ -167,7 +158,7 @@ def compare_snapshots(last_snapshot_path):
             
             if difference == {}:
                 # No updates for this employee, so we can skip them
-                print(f"No updates for employee {new_data['id']}")
+                # print(f"No updates for employee {new_data['id']}")
                 for _ in enumerate(entry["fields"]):
                     new_values.append(None)
                     old_values.append(None)
@@ -176,13 +167,18 @@ def compare_snapshots(last_snapshot_path):
                 print(f"Update detected in employee {new_data['id']}")
 
                 for _, key in enumerate(entry["fields"]):
-                    # Check if individual key has an update or not
-                    if (key['alias'] in str(difference['values_changed'])):
-                        # This could be better -- root['value'] is hardcoded
-                        new_values.append(difference["values_changed"][f"root['{key['alias']}']"]["new_value"])
-                        old_values.append(difference["values_changed"][f"root['{key['alias']}']"]["old_value"])
+                    if "values_changed" in difference:
+                        # Check if individual key has an update or not
+                        if (key['alias'] in str(difference['values_changed'])):
+                            # This could be better -- root['value'] is hardcoded
+                            new_values.append(difference["values_changed"][f"root['{key['alias']}']"]["new_value"])
+                            old_values.append(difference["values_changed"][f"root['{key['alias']}']"]["old_value"])
+                        else:
+                            # No updates for this specific key, so write None
+                            new_values.append(None)
+                            old_values.append(None)
                     else:
-                        # No updates for this specific key, so write None
+                        # Else, the field has (probably) been recently or modified within watching.json, so we can just write None.
                         new_values.append(None)
                         old_values.append(None)
 
@@ -192,16 +188,12 @@ def compare_snapshots(last_snapshot_path):
 
         output = json.dumps(output)
         
-        print(output)
+        print(f"POSTING: {output}")
 
         """
-        Post to Power Automate...
-        headers2 = {
-            "Accept": "application/json"
-        }
-
-        response = requests.post(entry["sendToEndpoint"], headers=headers2, json=output)
-        print(response)
+        # Post to Power Automate...
+        response = requests.post(entry["sendToEndpoint"], headers={"Accept": "application/json"}, json=output)
+        print(f"RESPONSE: {response}")
         """
 
 
