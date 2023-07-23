@@ -34,6 +34,7 @@ def main():
 
         with open(_constants.WATCHING_PATH, 'w') as file:
             file.write(_constants.WATCHING_TEMPLATE)
+            exit()
     else:
         # Check that the URL is a valid url
         watching = _common.load_file(_constants.WATCHING_PATH)
@@ -51,8 +52,6 @@ def main():
                     raise InvalidURL(f"watching.json: {entry['sendToEndpoint']} is not a valid URL.")
                 except Exception:
                     _logging.shut_down("error")
-
-
 
 
 def load_last_run():

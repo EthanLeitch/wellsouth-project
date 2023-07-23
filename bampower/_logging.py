@@ -8,6 +8,8 @@ from shutil import copyfile, rmtree
 import requests
 import yagmail
 import traceback
+from rich.console import Console
+console = Console()
 
 # Set up logging (ISO 8601)
 LOGGING_FORMAT = '%(asctime)s %(message)s'
@@ -17,9 +19,7 @@ logger = logging.getLogger()
 
 def shut_down(type="normal", trace=True):
     '''Move working files and shut down the program'''
-
-    print(f"Program ended ({type})")
-    logging.info(f"Program ended ({type})")
+    print()
 
     if type == "normal":
         # Move log.txt to current snapshot folder
@@ -27,6 +27,7 @@ def shut_down(type="normal", trace=True):
 
         # Copy watching.json to current snapshot folder
         copyfile(_constants.WATCHING_PATH, path.join(_constants.CURRENT_SNAPSHOT_PATH, "watching.json"))
+        message_style = "green"
 
     elif type == "error":
         if trace:
@@ -36,10 +37,15 @@ def shut_down(type="normal", trace=True):
 
         # Delete current snapshot 
         rmtree(_constants.CURRENT_SNAPSHOT_PATH)
+        message_style = "red"
     
     elif type == "debug":
         # Delete current snapshot 
         rmtree(_constants.CURRENT_SNAPSHOT_PATH)
+        message_style = "blue"
+
+    console.print(f"Program ended ({type})", style=message_style)
+    logging.info(f"Program ended ({type})")
 
     exit()
 

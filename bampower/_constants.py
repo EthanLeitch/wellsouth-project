@@ -40,6 +40,7 @@ WATCHING_TEMPLATE = """[
         "sendToEndpoint": "example.com",
         "fields": [
             {
+                "id": 17,
                 "name": "Job Title",
                 "type": "list",
                 "alias": "jobTitle"
@@ -59,11 +60,12 @@ WATCHING_SCHEMA = {
             "fields": {
                 "type": "array",
                 "properties": {
+                    "id": {"type": ["integer", "string"]},
                     "name": {"type": "string"},
                     "type": {"type": "string"},
                     "alias": {"type": "string"}
                 },
-                "required": ["name", "type", "alias"],
+                "required": ["id"],
                 "additionalProperties": False
             }
         },

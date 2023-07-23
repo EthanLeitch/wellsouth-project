@@ -18,6 +18,8 @@ from deepdiff import DeepDiff
 import pathlib
 import requests
 import traceback
+from rich.console import Console
+console = Console()
 
 _file_validator.main()
 
@@ -186,13 +188,20 @@ def compare_snapshots(last_snapshot_path):
 
         output = json.dumps(output)
         
+        print()
         print(f"POSTING: {output}")
+        _logging.logging.info(f"POSTING: {output}")
 
-        """
         # Post to Power Automate...
         response = requests.post(entry["sendToEndpoint"], headers={"Accept": "application/json"}, json=output)
-        print(f"RESPONSE: {response}")
-        """
+
+        # Check if response code is ok
+        if response.ok:
+            console.print(f"RESPONSE: [green]{response}[/green]")
+            _logging.logging.info(f"RESPONSE: {response}")
+        else:
+            console.print(f"RESPONSE: [red]{response}[/red]")
+            _logging.logging.error(f"RESPONSE: {response}")
 
 
 if __name__ == "__main__":
