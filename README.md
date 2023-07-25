@@ -7,7 +7,7 @@ This project connects Wellsouth's BambooHR database and Power Automate through a
 3. Create and activate a python virtual environment
 4. Install packages with `poetry install`
 5. Rename `.env.example` to `.env`, and fill out the fields. "API_KEY" is your BambooHR API key, and "DOMAIN" is the name of your BambooHR instance (*DOMAIN*.bamboohr.com)
-6. Configure `watching.json`
+6. Configure `watching.json` (stored in `files` directory)
 
 ## Usage
 `python3 bampower`
@@ -24,6 +24,7 @@ Bampower is configured via `watching.json`, like so:
         "sendToEndpoint": "example.com",
         "fields": [
             {
+                "id": 17,
                 "name": "Job Title",
                 "type": "list",
                 "alias": "jobTitle"

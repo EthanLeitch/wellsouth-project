@@ -7,7 +7,7 @@ from json import JSONDecodeError
 
 def request_url(request_type, url_end, payload=None):
     '''Sends a GET/POST request to BambooHR'''
-    url = f"https://api.bamboohr.com/api/gateway.php/{_constants.config['DOMAIN']}{url_end}"
+    url = f"https://api.bamboohr.com/api/gateway.php/{_constants.env['DOMAIN']}{url_end}"
 
     if request_type == "GET":
         if payload:

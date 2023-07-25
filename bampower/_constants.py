@@ -75,9 +75,9 @@ WATCHING_SCHEMA = {
 }
 
 # Load .env values
-config = dotenv_values(".env")
+env = dotenv_values(".env")
 
-raw_key = config["API_KEY"] + ":" # Append : to API key otherwise it doesn't work
+raw_key = env["API_KEY"] + ":" # Append : to API key otherwise it doesn't work
 key_bytes = raw_key.encode('ascii') # Encode raw key to bytes
 key_base64 = base64.urlsafe_b64encode(key_bytes) # Make it urlsafe base64
 API_KEY = key_base64.decode("utf-8") # Decode back to utf-8

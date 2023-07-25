@@ -1,0 +1,14 @@
+[
+    {
+        "title": "updated_job_title",
+        "sendToEndpoint": "example.com",
+        "fields": [
+            {
+                "id": 17,
+                "name": "Job Title",
+                "type": "list",
+                "alias": "jobTitle"
+            }
+        ]
+    }
+]

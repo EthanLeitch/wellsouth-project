@@ -54,7 +54,7 @@ def send_mail():
     '''Send an email alert'''
     logger.info("Something went wrong! Sending email message...")
 
-    yag = yagmail.SMTP(_constants.config["EMAIL_ADDRESS"], _constants.config["EMAIL_PASSWORD"])
+    yag = yagmail.SMTP(_constants.env["EMAIL_ADDRESS"], _constants.env["EMAIL_PASSWORD"])
     contents = [
         "Something went wrong! The Python program has been automatically halted.",
         "Below this message is the program's log (log.txt). It may help with diagnosing the problem."
