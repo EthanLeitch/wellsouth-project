@@ -6,7 +6,7 @@ This project connects Wellsouth's BambooHR database and Power Automate through a
 2. Install [poetry](https://python-poetry.org/docs/) (it's recommended that you use [pipx](https://github.com/pypa/pipx) to install)
 3. Create and activate a python virtual environment
 4. Install packages with `poetry install`
-5. Rename `.env.example` to `.env`, and fill out the fields. "API_KEY" is your BambooHR API key, and "DOMAIN" is the name of your BambooHR instance (*DOMAIN*.bamboohr.com)
+5. Rename `.env.example` to `.env`, and fill out the fields. "API_KEY" is your BambooHR API key, and "DOMAIN" is the name of your BambooHR instance (*DOMAIN*.bamboohr.com). If you want to enable email error reporting, fill out "EMAIL_ADDRESSES", "EMAIL_PASSWORD", and "RECEIVING_ADDRESSES".
 6. Configure `watching.json` (stored in `files` directory)
 
 ## Usage

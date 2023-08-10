@@ -76,6 +76,7 @@ WATCHING_SCHEMA = {
 
 # Load .env values
 env = dotenv_values(".env")
+env["RECEIVING_ADDRESSES"] = env["RECEIVING_ADDRESSES"].split(",")
 
 raw_key = env["API_KEY"] + ":" # Append : to API key otherwise it doesn't work
 key_bytes = raw_key.encode('ascii') # Encode raw key to bytes

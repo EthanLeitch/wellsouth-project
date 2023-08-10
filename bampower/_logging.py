@@ -8,6 +8,7 @@ from shutil import copyfile, rmtree
 import requests
 import yagmail
 import traceback
+import time
 from rich.console import Console
 console = Console()
 
@@ -38,6 +39,16 @@ def shut_down(type="normal", trace=True):
         # Delete current snapshot 
         rmtree(_constants.CURRENT_SNAPSHOT_PATH)
         message_style = "red"
+
+        if _constants.env['RECEIVING_ADDRESSES'] != ['']:
+            try:
+                send_mail()
+            except Exception:
+                print(traceback.format_exc())
+                logger.error(traceback.format_exc())
+        else:
+            print("No email addresses to send to!")
+            logger.warning("No email addresses to send to!")
     
     elif type == "debug":
         # Delete current snapshot 
@@ -54,12 +65,13 @@ def send_mail():
     '''Send an email alert'''
     logger.info("Something went wrong! Sending email message...")
 
-    yag = yagmail.SMTP(_constants.env["EMAIL_ADDRESS"], _constants.env["EMAIL_PASSWORD"])
+    yag = yagmail.SMTP(_constants.env["EMAIL_ADDRESSES"], _constants.env["EMAIL_PASSWORD"])
     contents = [
-        "Something went wrong! The Python program has been automatically halted.",
-        "Below this message is the program's log (log.txt). It may help with diagnosing the problem."
+        "Something went wrong! The bampower program has been automatically halted.",
+        "Attached is the program's log (log.txt). It may help with diagnosing the problem."
         " ",
     ]
-    yag.send(_constants.config["RECEIVING_ADDRESS"], f'Python error @ {time.asctime()}', contents, attachments="log.txt")
 
-    exit()
+    print(f"Sending error report to {(', ').join(_constants.env['RECEIVING_ADDRESSES'])}")
+    for address in _constants.env["RECEIVING_ADDRESSES"]:
+        yag.send(address, f'bampower error @ {time.asctime()}', contents, attachments=_constants.LOG_PATH)
