@@ -90,18 +90,6 @@ def sort_snapshots():
     
     last_snapshot_path = path.join(_constants.SNAPSHOTS_PATH, snapshots[-2])
 
-    """
-    # Error handling: Watch for changes between old watching.json and latest one
-    old_watching = _common.load_file(path.join(last_snapshot_path, "watching.json"))
-
-    difference = DeepDiff(old_watching, watching)
-
-    if difference != {}:
-        print("watching.json: File has been modified. Please remove all previous snapshots, and run the program again.")
-        _logging.error("watching.json: File has been modified. Please remove all previous snapshots, and run the program again.")
-        _logging.shut_down("error", trace=False)
-    """
-
     # Rename .json files if their name changes in watching.json
     old_watching = _common.load_file(path.join(last_snapshot_path, "watching.json"))
     difference = DeepDiff(old_watching, watching)
